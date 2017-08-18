@@ -27,6 +27,7 @@
     var listenerData = document.querySelector('.listener-data');
     var pannerData = document.querySelector('.panner-data');
 
+    const zCompensation = -0.1;
     const listener = audioContext.listener;
     const drop = audioFileLoader('samples/Water Drop Low.wav')
     const panner =  audioContext.createPanner()
@@ -74,6 +75,10 @@
             const newXPosition = xPosListener - 1
             listener.setPosition(newXPosition, yPosListener, zPosListener)
         }
+        if (listener.positionZ.value - panner.positionZ.value === 0){
+            //source and listener should never be on the same exact z
+            listener.positionZ.value -= zCompensation;
+        }
         listenerData.innerHTML =
             'Listener data: X ' + listener.positionX.value +
             ' Y ' + listener.positionY.value +
@@ -92,7 +97,7 @@
     soundIsFound = (listener, panner) => {
         return listener.positionX.value === panner.positionX.value
         && listener.positionY.value === panner.positionY.value
-        && listener.positionZ.value === panner.positionZ.value
+        && listener.positionZ.value - panner.positionZ.value <= zCompensation
     }
 
     window.addEventListener('keypress', moveListener)
