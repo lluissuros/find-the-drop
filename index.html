@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>find the drop</title>
+    <script src="audioContextCheck.js"></script>
+    <script src="audiolib.js"></script>
+</head>
+<body>
+    <button class="play">Play</button>
+    <button class="stop">Stop</button>
+    <p class="listener-data">Listener data:</p>
+    <p class="panner-data">Panner data:</p>
+<script>
+
+var play = document.querySelector('.play');
+play.onclick = () => {
+    loopSound(drop);
+    play.setAttribute('disabled', 'disabled');
+}
+var stop = document.querySelector('.stop');
+stop.onclick = () => {
+    clearTimeout(loopSoundId);
+    play.removeAttribute('disabled');
+}
+var listenerData = document.querySelector('.listener-data');
+var pannerData = document.querySelector('.panner-data');
+
+const listener = audioContext.listener;
+const drop = audioFileLoader('samples/Water Drop Low.wav')
+const panner =  audioContext.createPanner()
+const [xPosSource, yPosSource, zPosSource] = [3,0,4]
+let loopSoundId;
+panner.setPosition(xPosSource, yPosSource, zPosSource)
+pannerData.innerHTML = 'Panner data: X:' + xPosSource + ' Y:' + yPosSource + ' Z:' + zPosSource;
+listenerData.innerHTML = 'Listener data: X ' + 0 + ' Y ' + 0 + ' Z ' + 0;
+
+drop
+    .connect(panner)
+    .connect(audioContext.destination)
+
+const loopSound = (sound) => {
+    loopSoundId = setTimeout(() => {
+            sound.play(1)
+            loopSound(sound)
+        }
+        , Math.random() * 2000)
+}
+
+const moveListener = () => {
+    // TODO: define some maxim boundaries for the listener?
+    // TODO: doesnt work when there is 0 sitance, there should be a minimal distance between listener and source
+    const keyPressed = event.key;
+    console.log(keyPressed);
+    const xPosListener = listener.positionX.value
+    const yPosListener = listener.positionY.value
+    const zPosListener = listener.positionZ.value
+
+    //TODO: movements should be smooth, maybe usinng an iterator and requestFramAnimation
+    if (keyPressed === 'w') {
+        const newZPosition = zPosListener + 1
+        listener.setPosition(xPosListener, yPosListener, newZPosition)
+    }
+    if (keyPressed === 's') {
+        const newZPosition = zPosListener - 1
+        listener.setPosition(xPosListener, yPosListener, newZPosition)
+    }
+    if (keyPressed === 'd') {
+        const newXPosition = xPosListener + 1
+        listener.setPosition(newXPosition, yPosListener, zPosListener)
+    }
+    if (keyPressed === 'a') {
+        const newXPosition = xPosListener - 1
+        listener.setPosition(newXPosition, yPosListener, zPosListener)
+    }
+    listenerData.innerHTML =
+        'Listener data: X ' + listener.positionX.value +
+        ' Y ' + listener.positionY.value +
+        ' Z ' + listener.positionZ.value;
+}
+
+window.addEventListener('keypress', moveListener)
+
+</script>
+</body>
+</html>
